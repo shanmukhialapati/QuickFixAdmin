@@ -10,12 +10,12 @@ import Login from "./pages/Login";
 // Admin Pages
 import Dashboard from "./pages/Dashboard";
 import ServiceProviders from "./pages/ServiceProviders";
-import Customers from "./Pages/Customers";
-import Bookings from "./Pages/Bookings";
-import Categories from "./Pages/Categories";
-import Payments from "./Pages/Payments";
-import Reviews from "./Pages/Reviews";
-import Settings from "./Pages/Settings";
+import Customers from "./pages/Customers";
+import Bookings from "./pages/Bookings";
+import Categories from "./pages/Categories";
+import Payments from "./pages/Payments";
+import Reviews from "./pages/Reviews";
+import Settings from "./pages/Settings";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(true);
