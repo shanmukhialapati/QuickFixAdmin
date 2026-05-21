@@ -1,15 +1,16 @@
+// src/App.jsx
 import React, { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // Layout
 import AdminLayout from "./layouts/AdminLayout";
 
-// Auth
-import Login from "./pages/Login";
+// Auth (ఇక్కడ 'Pages' గా మార్చాను)
+import Login from "./Pages/Login";
 
-// Admin Pages
-import Dashboard from "./pages/Dashboard";
-import ServiceProviders from "./pages/ServiceProviders";
+// Admin Pages (ఇక్కడ కూడా అన్నింటికీ 'Pages' కరెక్ట్ చేశాను)
+import Dashboard from "./Pages/Dashboard";
+import ServiceProviders from "./Pages/ServiceProviders";
 import Customers from "./Pages/Customers";
 import Bookings from "./Pages/Bookings";
 import Categories from "./Pages/Categories";
@@ -18,6 +19,7 @@ import Reviews from "./Pages/Reviews";
 import Settings from "./Pages/Settings";
 
 function App() {
+  // UI చెక్ చేసుకోవడానికి ప్రస్తుతానికి true లో ఉంచాను
   const [isAuthenticated, setIsAuthenticated] = useState(true);
 
   return (
@@ -47,21 +49,13 @@ function App() {
           }
         >
           <Route index element={<Navigate to="/dashboard" replace />} />
-
           <Route path="dashboard" element={<Dashboard />} />
-
           <Route path="service-providers" element={<ServiceProviders />} />
-
           <Route path="customers" element={<Customers />} />
-
           <Route path="bookings" element={<Bookings />} />
-
           <Route path="categories" element={<Categories />} />
-
           <Route path="payments" element={<Payments />} />
-
           <Route path="reviews" element={<Reviews />} />
-
           <Route path="settings" element={<Settings />} />
         </Route>
 
