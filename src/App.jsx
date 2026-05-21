@@ -5,12 +5,12 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 // Layout
 import AdminLayout from "./layouts/AdminLayout";
 
-// Auth (ఇక్కడ 'Pages' గా మార్చాను)
+
 import Login from "./Pages/Login";
 
-// Admin Pages (ఇక్కడ కూడా అన్నింటికీ 'Pages' కరెక్ట్ చేశాను)
-import Dashboard from "./Pages/Dashboard";
-import ServiceProviders from "./Pages/ServiceProviders";
+// Admin Pages
+import Dashboard from "./pages/Dashboard";
+import ServiceProviders from "./pages/ServiceProviders";
 import Customers from "./Pages/Customers";
 import Bookings from "./Pages/Bookings";
 import Categories from "./Pages/Categories";
