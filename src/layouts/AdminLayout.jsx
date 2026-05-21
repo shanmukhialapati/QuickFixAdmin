@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -14,215 +14,155 @@ import {
   X,
   Bell,
   ChevronRight,
-  Wrench,
   ChevronDown,
+  CheckCheck,
+  Trash2,
+  Check,
+  CreditCard as PayIcon,
+  MessageSquare,
+  AlertCircle,
+  UserPlus,
+  Package,
 } from "lucide-react";
 
-const globalCSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Syne:wght@700;800&display=swap');
+const INITIAL_NOTIFS = [
+  {
+    id: 1,
+    type: "booking",
+    title: "New booking #1042",
+    sub: "Anita Sharma · Pipe Repair",
+    time: "2 min ago",
+    read: false,
+  },
+  {
+    id: 2,
+    type: "payment",
+    title: "Payment received",
+    sub: "₹1,200 from Rahul Kapoor",
+    time: "15 min ago",
+    read: false,
+  },
+  {
+    id: 3,
+    type: "review",
+    title: "New review posted",
+    sub: "5★ by Mohan Reddy",
+    time: "1 hour ago",
+    read: false,
+  },
+  {
+    id: 4,
+    type: "user",
+    title: "New customer joined",
+    sub: "Sneha Tiwari signed up",
+    time: "2 hours ago",
+    read: true,
+  },
+  {
+    id: 5,
+    type: "booking",
+    title: "New booking #1042",
+    sub: "Anita Sharma · Pipe Repair",
+    time: "2 min ago",
+    read: false,
+  },
+];
 
-  :root {
-    --bg:          #f0f9ff;
-    --sidebar:     #ffffff;
-    --accent:      #3b82f6;
-    --accent2:     #06b6d4;
-    --pastel1:     #e0f2fe;
-    --pastel2:     #cffafe;
-    --pastel3:     #dbeafe;
-    --pastel4:     #d1fae5;
-    --text:        #0c2461;
-    --muted:       #64a0c8;
-    --card:        #fffffff0;
-    --border:      #bae6fd;
-    --active-glow: 0 4px 24px #3b82f655;
-  }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    
-    background: var(--bg);
-    color: var(--text);
-  }
-
-  @keyframes slideIn {
-    from { transform: translateX(-100%); opacity: 0; }
-    to   { transform: translateX(0);     opacity: 1; }
-  }
-  @keyframes navPop {
-    0%   { transform: scale(0.88); opacity: 0; }
-    70%  { transform: scale(1.04); }
-    100% { transform: scale(1);    opacity: 1; }
-  }
-  @keyframes floatBlob {
-    0%, 100% { transform: translateY(0) scale(1); }
-    50%       { transform: translateY(-18px) scale(1.04); }
-  }
-  @keyframes pulseDot {
-    0%, 100% { box-shadow: 0 0 0 0 #06b6d480; }
-    50%       { box-shadow: 0 0 0 6px #06b6d400; }
-  }
-  @keyframes slideDown {
-    from { transform: translateY(-8px); opacity: 0; }
-    to   { transform: translateY(0);    opacity: 1; }
-  }
-  @keyframes gradientShift {
-    0%   { background-position: 0% 50%; }
-    50%  { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-
-  .admin-sidebar { animation: slideIn 0.45s cubic-bezier(.22,1,.36,1) both; }
-  .nav-item      { animation: navPop 0.35s cubic-bezier(.22,1,.36,1) both; }
-  .notif-badge   { animation: pulseDot 1.8s ease-in-out infinite; }
-  .blob          { animation: floatBlob 6s ease-in-out infinite; }
-
-  .nav-item:nth-child(1) { animation-delay: .05s; }
-  .nav-item:nth-child(2) { animation-delay: .10s; }
-  .nav-item:nth-child(3) { animation-delay: .15s; }
-  .nav-item:nth-child(4) { animation-delay: .20s; }
-  .nav-item:nth-child(5) { animation-delay: .25s; }
-  .nav-item:nth-child(6) { animation-delay: .30s; }
-  .nav-item:nth-child(7) { animation-delay: .35s; }
-  .nav-item:nth-child(8) { animation-delay: .40s; }
-
-  .nav-link {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 11px 14px;
-    border-radius: 14px;
-    font-weight: 700;
-    font-size: 14.5px;
-    color: #2563eb;
-    text-decoration: none;
-    transition: background .2s, color .2s, transform .18s, box-shadow .2s;
-  }
-  .nav-link:hover {
-    background: #e0f2fe;
-    color: #1d4ed8;
-    transform: translateX(4px);
-  }
-  .nav-link.active {
-    background: linear-gradient(135deg, #3b82f6, #06b6d4);
-    color: #fff;
-    box-shadow: var(--active-glow);
-    transform: translateX(0);
-  }
-  .nav-link.active .nav-icon-wrap {
-    background: rgba(255,255,255,.28);
-    color: #fff;
-  }
-  .nav-icon-wrap {
-    width: 34px; height: 34px;
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    background: #e0f2fe;
-    color: #3b82f6;
-    flex-shrink: 0;
-    transition: background .2s, color .2s;
-  }
-  .nav-link:hover .nav-icon-wrap {
-    background: #bae6fd;
-    color: #1d4ed8;
-  }
-
-  .nav-tooltip {
-    position: absolute;
-    left: calc(100% + 14px);
-    top: 50%;
-    transform: translateY(-50%);
-    background: linear-gradient(135deg, #3b82f6, #06b6d4);
-    color: #fff;
-    font-size: 12px;
-    font-weight: 700;
-    padding: 5px 12px;
-    border-radius: 8px;
-    white-space: nowrap;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity .2s;
-    z-index: 999;
-    box-shadow: 0 4px 14px #3b82f644;
-  }
-  .nav-link:hover .nav-tooltip { opacity: 1; }
-
-  ::-webkit-scrollbar { width: 5px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: #bae6fd; border-radius: 99px; }
-
-  .mobile-overlay {
-    position: fixed; inset: 0;
-    background: #0c246166;
-    backdrop-filter: blur(3px);
-    z-index: 39;
-    animation: slideDown .2s ease both;
-  }
-
-  .breadcrumb-chip {
-    background: linear-gradient(135deg, #e0f2fe, #cffafe);
-    border: 1px solid #bae6fd;
-    padding: 2px 10px;
-    border-radius: 99px;
-    font-size: 11px;
-    font-weight: 800;
-    color: #0284c7;
-    letter-spacing: .02em;
-  }
-
-  .glass-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    backdrop-filter: blur(8px);
-    box-shadow: 0 8px 32px #3b82f615;
-  }
-
-  /* Animated gradient bar at top of sidebar */
-  .sidebar-topbar {
-    height: 4px;
-    background: linear-gradient(90deg, #3b82f6, #06b6d4, #3b82f6);
-    background-size: 200% 100%;
-    animation: gradientShift 3s ease infinite;
-  }
-
-  @media (max-width: 768px) {
-    .admin-sidebar {
-      position: fixed;
-      top: 0; left: 0; bottom: 0;
-      z-index: 40;
-      width: 260px !important;
-    }
-    .sidebar-hidden {
-      transform: translateX(-110%) !important;
-      animation: none !important;
-    }
-  }
-`;
+const NOTIF_META = {
+  booking: {
+    icon: <Package size={14} />,
+    bg: "bg-[#f3e5ff]",
+  },
+  payment: {
+    icon: <PayIcon size={14} />,
+    bg: "bg-[#f3e5ff]",
+  },
+  review: {
+    icon: <MessageSquare size={14} />,
+    bg: "bg-[#f3e5ff]",
+  },
+  user: {
+    icon: <UserPlus size={14} />,
+    bg: "bg-[#f3e5ff]",
+  },
+  alert: {
+    icon: <AlertCircle size={14} />,
+    bg: "bg-rose-100",
+  },
+};
 
 const AdminLayout = ({ setIsAuthenticated }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const notifRef = useRef(null);
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [notifOpen, setNotifOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [notifs, setNotifs] = useState(INITIAL_NOTIFS);
 
+  /* responsive */
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 768px)");
+    const mq = window.matchMedia("(max-width:768px)");
+
     const handler = (e) => {
       setIsMobile(e.matches);
-      if (e.matches) setSidebarOpen(false);
+
+      if (e.matches) {
+        setSidebarOpen(false);
+      }
     };
+
     handler(mq);
+
     mq.addEventListener("change", handler);
+
     return () => mq.removeEventListener("change", handler);
   }, []);
 
   useEffect(() => {
-    if (isMobile) setSidebarOpen(false);
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
   }, [location.pathname]);
+
+  /* close notification panel */
+  useEffect(() => {
+    const handler = (e) => {
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setNotifOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handler);
+
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const unreadCount = notifs.filter((n) => !n.read).length;
+
+  const markRead = (id) => {
+    setNotifs((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
+    );
+  };
+
+  const deleteOne = (id) => {
+    setNotifs((prev) => prev.filter((n) => n.id !== id));
+  };
+
+  const markAllRead = () => {
+    setNotifs((prev) =>
+      prev.map((n) => ({
+        ...n,
+        read: true,
+      })),
+    );
+  };
+
+  const deleteAll = () => {
+    setNotifs([]);
+  };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
@@ -233,583 +173,469 @@ const AdminLayout = ({ setIsAuthenticated }) => {
     {
       name: "Dashboard",
       path: "/dashboard",
-      icon: <LayoutDashboard size={17} />,
+      icon: <LayoutDashboard size={18} />,
     },
     {
       name: "Service Providers",
       path: "/service-providers",
-      icon: <Briefcase size={17} />,
+      icon: <Briefcase size={18} />,
     },
-    { name: "Customers", path: "/customers", icon: <Users size={17} /> },
-    { name: "Bookings", path: "/bookings", icon: <CalendarCheck size={17} /> },
-    { name: "Categories", path: "/categories", icon: <Grid2X2 size={17} /> },
-    { name: "Payments", path: "/payments", icon: <CreditCard size={17} /> },
-    { name: "Reviews", path: "/reviews", icon: <Star size={17} /> },
-    { name: "Settings", path: "/settings", icon: <Settings size={17} /> },
+    {
+      name: "Customers",
+      path: "/customers",
+      icon: <Users size={18} />,
+    },
+    {
+      name: "Bookings",
+      path: "/bookings",
+      icon: <CalendarCheck size={18} />,
+    },
+    {
+      name: "Categories",
+      path: "/categories",
+      icon: <Grid2X2 size={18} />,
+    },
+    {
+      name: "Payments",
+      path: "/payments",
+      icon: <CreditCard size={18} />,
+    },
+    {
+      name: "Reviews",
+      path: "/reviews",
+      icon: <Star size={18} />,
+    },
+    {
+      name: "Settings",
+      path: "/settings",
+      icon: <Settings size={18} />,
+    },
   ];
 
   const collapsed = !isMobile && !sidebarOpen;
+
   const pageTitle =
     location.pathname.split("/")[1]?.replace(/-/g, " ") || "Dashboard";
 
   return (
-    <>
-      <style>{globalCSS}</style>
+    <div className="flex h-screen overflow-hidden bg-[#f4ecff] relative">
+      {/* Ambient blobs */}
 
-      <div
+      <div className="absolute top-[-80px] right-[-80px] h-[320px] w-[320px] rounded-full bg-[#d9b3ff]/30 blur-3xl animate-pulse" />
+
+      <div className="absolute bottom-[10%] left-[35%] h-[220px] w-[220px] rounded-full bg-purple-200/30 blur-3xl animate-pulse" />
+
+      {/* Mobile overlay */}
+
+      {isMobile && sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm"
+        />
+      )}
+
+      {/* SIDEBAR */}
+
+      <aside
+        className={`
+          ${isMobile ? "fixed z-40" : "relative"}
+          ${isMobile && !sidebarOpen ? "-translate-x-full" : "translate-x-0"}
+          transition-all duration-300
+          h-screen
+          bg-white
+          border-r border-[#f3e5ff]
+          shadow-xl
+          flex
+          flex-col
+        `}
         style={{
-          display: "flex",
-          height: "100vh",
-          overflow: "hidden",
-          background: "var(--bg)",
-          position: "relative",
+          width: collapsed ? "80px" : "260px",
         }}
       >
-        {/* Blobs */}
-        <div
-          className="blob"
-          style={{
-            position: "fixed",
-            top: "-60px",
-            right: "-60px",
-            width: 300,
-            height: 300,
-            borderRadius: "50%",
-            background:
-              "radial-gradient(circle, #bae6fd55 0%, transparent 70%)",
-            pointerEvents: "none",
-            zIndex: 0,
-          }}
-        />
-        <div
-          className="blob"
-          style={{
-            position: "fixed",
-            bottom: "8%",
-            left: "35%",
-            width: 220,
-            height: 220,
-            borderRadius: "50%",
-            background:
-              "radial-gradient(circle, #cffafe55 0%, transparent 70%)",
-            animationDelay: "2.5s",
-            pointerEvents: "none",
-            zIndex: 0,
-          }}
-        />
+        {/* top gradient */}
 
-        {/* Mobile overlay */}
-        {isMobile && sidebarOpen && (
-          <div
-            className="mobile-overlay"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
+        <div className="h-1 bg-gradient-to-r from-[#600080] via-[#8e24aa] to-[#d9b3ff] bg-[length:300%_100%] animate-pulse" />
 
-        {/* ══════════ SIDEBAR ══════════ */}
-        <aside
-          className={`admin-sidebar ${isMobile && !sidebarOpen ? "sidebar-hidden" : ""}`}
-          style={{
-            width: collapsed ? 76 : 260,
-            background: "#ffffff",
-            display: "flex",
-            flexDirection: "column",
-            transition: "width .3s cubic-bezier(.22,1,.36,1)",
-            flexShrink: 0,
-            position: isMobile ? "fixed" : "relative",
-            zIndex: 40,
-            top: 0,
-            bottom: 0,
-            left: 0,
-            boxShadow: "4px 0 24px #3b82f618",
-            borderRight: "1px solid #e0f2fe",
-            overflow: "hidden",
-          }}
+        {/* logo */}
+
+        <div
+          className={`
+            h-[70px]
+            border-b
+            border-[#f3e5ff]
+            flex
+            items-center
+            ${collapsed ? "justify-center px-2" : "justify-between px-4"}
+          `}
         >
-          {/* Animated gradient top bar */}
-          <div className="sidebar-topbar" />
-
-          {/* Logo */}
-          <div
-            style={{
-              height: 68,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: collapsed ? "center" : "space-between",
-              padding: collapsed ? "0 12px" : "0 16px",
-              borderBottom: "1px solid #e0f2fe",
-              flexShrink: 0,
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 11,
-                overflow: "hidden",
-              }}
-            >
-              {/* <div
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 14,
-                  background: "linear-gradient(135deg, #3b82f6, #06b6d4)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  boxShadow: "0 4px 18px #3b82f655",
-                  flexShrink: 0,
-                }}
-              >
-                <Wrench size={18} color="#fff" />
-              </div> */}
-              {!collapsed && (
-                <div style={{ overflow: "hidden" }}>
-                  <div
-                    style={{
-                      //   fontFamily: "'Syne', sans-serif",
-                      fontWeight: 800,
-                      fontSize: 17,
-                      background: "linear-gradient(135deg, #3b82f6, #06b6d4)",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      letterSpacing: "-.01em",
-                      lineHeight: 1.1,
-                    }}
-                  >
-                    QuickFix
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 10.5,
-                      color: "#64a0c8",
-                      fontWeight: 700,
-                      letterSpacing: ".08em",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    Admin Panel
-                  </div>
-                </div>
-              )}
-            </div>
-            {!isMobile && (
-              <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                style={{
-                  width: 30,
-                  height: 30,
-                  borderRadius: 9,
-                  border: "none",
-                  background: "#e0f2fe",
-                  color: "#3b82f6",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  flexShrink: 0,
-                  transition: "background .2s",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.background = "#bae6fd")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.background = "#e0f2fe")
-                }
-              >
-                {sidebarOpen ? <X size={15} /> : <Menu size={15} />}
-              </button>
-            )}
-          </div>
-
-          {/* Section label */}
           {!collapsed && (
-            <div
-              style={{
-                padding: "16px 18px 4px",
-                fontSize: 10,
-                fontWeight: 800,
-                letterSpacing: ".12em",
-                color: "#93c5fd",
-                textTransform: "uppercase",
-                flexShrink: 0,
-              }}
-            >
-              Main Menu
+            <div>
+              <h1 className="text-2xl font-black bg-gradient-to-r from-[#600080] to-[#8d39a7] bg-clip-text text-transparent">
+                QuickFix
+              </h1>
+
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[#8e24aa]">
+                Admin Panel
+              </p>
             </div>
           )}
 
-          {/* Nav */}
-          <nav
-            style={{
-              flex: 1,
-              overflowY: "auto",
-              padding: collapsed ? "10px 10px" : "4px 12px 12px",
-              display: "flex",
-              flexDirection: "column",
-              gap: 3,
-            }}
-          >
-            {navItems.map((item) => {
-              const active = location.pathname === item.path;
-              return (
-                <div
-                  key={item.path}
-                  className="nav-item"
-                  style={{ position: "relative" }}
-                >
-                  <Link
-                    to={item.path}
-                    className={`nav-link ${active ? "active" : ""}`}
-                    style={
-                      collapsed
-                        ? { justifyContent: "center", padding: "11px 0" }
-                        : {}
-                    }
-                  >
-                    <span className="nav-icon-wrap">{item.icon}</span>
-                    {!collapsed && <span>{item.name}</span>}
-                    {!collapsed && active && (
-                      <span
-                        style={{
-                          marginLeft: "auto",
-                          width: 7,
-                          height: 7,
-                          borderRadius: "50%",
-                          background: "#fff",
-                          boxShadow: "0 0 8px #fff",
-                        }}
-                      />
-                    )}
-                    {collapsed && (
-                      <span className="nav-tooltip">{item.name}</span>
-                    )}
-                  </Link>
-                </div>
-              );
-            })}
-          </nav>
-
-          {/* Logout */}
-          <div
-            style={{
-              padding: collapsed ? "12px 10px" : "12px",
-              borderTop: "1px solid #e0f2fe",
-              flexShrink: 0,
-            }}
-          >
+          {!isMobile && (
             <button
-              onClick={handleLogout}
-              style={{
-                width: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: collapsed ? "center" : "flex-start",
-                gap: 10,
-                padding: collapsed ? "11px 0" : "11px 14px",
-                borderRadius: 14,
-                border: "1px solid #fecdd3",
-                background: "#fff1f2",
-                color: "#f43f5e",
-
-                fontWeight: 700,
-                fontSize: 14,
-                cursor: "pointer",
-                transition: "all .2s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#ef444488";
-                e.currentTarget.style.color = "#fff";
-                e.currentTarget.style.borderColor = "transparent";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "#fff1f2";
-                e.currentTarget.style.color = "#f43f5e";
-                e.currentTarget.style.borderColor = "#fecdd3";
-              }}
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="h-8 w-8 rounded-lg bg-[#f3e5ff] hover:bg-purple-200 text-[#600080] flex items-center justify-center transition"
             >
-              <LogOut size={17} />
-              {!collapsed && <span>Logout</span>}
+              {sidebarOpen ? <X size={16} /> : <Menu size={16} />}
             </button>
+          )}
+        </div>
+
+        {!collapsed && (
+          <div className="px-5 pt-5 pb-2 text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#600080]">
+            Main Menu
           </div>
-        </aside>
+        )}
 
-        {/* ══════════ MAIN AREA ══════════ */}
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            overflow: "hidden",
-            position: "relative",
-            zIndex: 1,
-          }}
-        >
-          {/* Header */}
-          <header
-            style={{
-              height: 68,
-              background: "rgba(255,255,255,.90)",
-              backdropFilter: "blur(16px)",
-              borderBottom: "1px solid #e0f2fe",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "0 24px",
-              flexShrink: 0,
-              boxShadow: "0 2px 20px #3b82f610",
-              position: "relative",
-              zIndex: 20,
-            }}
-          >
-            {/* Left */}
-            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              {isMobile && (
-                <button
-                  onClick={() => setSidebarOpen(true)}
-                  style={{
-                    width: 38,
-                    height: 38,
-                    borderRadius: 11,
-                    border: "1px solid #bae6fd",
-                    background: "#e0f2fe",
-                    color: "#3b82f6",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: "pointer",
-                  }}
-                >
-                  <Menu size={18} />
-                </button>
-              )}
-              <div>
-                <h2
-                  style={{
-                    fontWeight: 800,
-                    fontSize: 25,
-                    color: "#0c2461",
-                    letterSpacing: "-.02em",
-                    textTransform: "capitalize",
-                    lineHeight: 1.2,
-                  }}
-                >
-                  {pageTitle}
-                </h2>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 5,
-                    marginTop: 2,
-                  }}
-                >
-                  <span
-                    style={{ fontSize: 11, color: "#64a0c8", fontWeight: 600 }}
-                  >
-                    QuickFix
-                  </span>
-                  <ChevronRight size={10} color="#64a0c8" />
-                  <span
-                    className="breadcrumb-chip"
-                    style={{ textTransform: "capitalize" }}
-                  >
-                    {pageTitle}
-                  </span>
-                </div>
-              </div>
-            </div>
+        {/* nav */}
 
-            {/* Right */}
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              {/* Notification */}
-              <div style={{ position: "relative" }}>
-                <button
-                  onClick={() => setNotifOpen(!notifOpen)}
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 12,
-                    border: "1px solid #bae6fd",
-                    background: notifOpen ? "#e0f2fe" : "#fff",
-                    color: "#3b82f6",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: "pointer",
-                    transition: "all .2s",
-                    position: "relative",
-                  }}
-                >
-                  <Bell size={18} />
-                  <span
-                    className="notif-badge"
-                    style={{
-                      position: "absolute",
-                      top: 9,
-                      right: 9,
-                      width: 9,
-                      height: 9,
-                      borderRadius: "50%",
-                      background: "#06b6d4",
-                      border: "2px solid #fff",
-                    }}
-                  />
-                </button>
+        <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-2">
+          {navItems.map((item) => {
+            const active = location.pathname === item.path;
 
-                {notifOpen && (
-                  <div
-                    className="glass-card"
-                    style={{
-                      position: "absolute",
-                      top: "calc(100% + 10px)",
-                      right: 0,
-                      width: 290,
-                      padding: 16,
-                      zIndex: 99,
-                      animation: "slideDown .2s ease both",
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontWeight: 800,
-                        fontSize: 13,
-                        marginBottom: 12,
-                        color: "#0c2461",
-                      }}
-                    >
-                      Notifications
-                    </div>
-                    {[
-                      { t: "New booking #1042", s: "2 min ago", c: "#e0f2fe" },
-                      { t: "Payment received", s: "15 min ago", c: "#d1fae5" },
-                      { t: "New review posted", s: "1 hour ago", c: "#cffafe" },
-                    ].map((n, i) => (
-                      <div
-                        key={i}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 10,
-                          padding: "9px 10px",
-                          borderRadius: 11,
-                          background: n.c,
-                          marginBottom: 6,
-                          cursor: "pointer",
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: 8,
-                            height: 8,
-                            borderRadius: "50%",
-                            background:
-                              "linear-gradient(135deg,#3b82f6,#06b6d4)",
-                            flexShrink: 0,
-                          }}
-                        />
-                        <div>
-                          <div
-                            style={{
-                              fontSize: 12.5,
-                              fontWeight: 700,
-                              color: "#0c2461",
-                            }}
-                          >
-                            {n.t}
-                          </div>
-                          <div
-                            style={{
-                              fontSize: 10.5,
-                              color: "#64a0c8",
-                              fontWeight: 600,
-                            }}
-                          >
-                            {n.s}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Admin profile */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  background: "#f0f9ff",
-                  border: "1px solid #bae6fd",
-                  borderRadius: 14,
-                  padding: "7px 12px 7px 7px",
-                  cursor: "pointer",
-                }}
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`
+                  group
+                  relative
+                  flex
+                  items-center
+                  gap-3
+                  rounded-2xl
+                  font-bold
+                  text-[14px]
+                  transition-all
+                  duration-200
+                  ${collapsed ? "justify-center py-3" : "px-4 py-3"}
+                  ${
+                    active
+                      ? "bg-gradient-to-r from-[#600080] via-[#600080] to-[#d9b3ff] text-white shadow-lg shadow-[#d9b3ff]/40"
+                      : "text-[#600080] hover:bg-[#f3e5ff] hover:text-purple-900"
+                  }
+                `}
               >
                 <div
-                  style={{
-                    width: 34,
-                    height: 34,
-                    borderRadius: 11,
-                    background: "linear-gradient(135deg, #3b82f6, #06b6d4)",
-                    color: "#fff",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-
-                    fontWeight: 800,
-                    fontSize: 15,
-                    boxShadow: "0 3px 12px #3b82f655",
-                  }}
+                  className={`
+                    h-9
+                    w-9
+                    rounded-xl
+                    flex
+                    items-center
+                    justify-center
+                    transition
+                    ${
+                      active
+                        ? "bg-white/20 text-white"
+                        : "bg-[#f3e5ff] text-[#7a009f] group-hover:bg-purple-200"
+                    }
+                  `}
                 >
-                  A
+                  {item.icon}
                 </div>
-                <div style={{ display: "none" }} className="md-show">
-                  <div
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 800,
-                      color: "#0c2461",
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    Admin
+
+                {!collapsed && (
+                  <>
+                    <span>{item.name}</span>
+
+                    {active && (
+                      <span className="ml-auto h-2 w-2 rounded-full bg-white shadow-md" />
+                    )}
+                  </>
+                )}
+
+                {/* tooltip */}
+
+                {collapsed && (
+                  <div className="absolute left-[90px] opacity-0 group-hover:opacity-100 transition bg-gradient-to-r from-[#600080] via-[#600080] to-purple-400 text-white text-xs font-bold px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg z-50">
+                    {item.name}
                   </div>
-                  <div
-                    style={{
-                      fontSize: 10.5,
-                      color: "#0284c7",
-                      fontWeight: 700,
-                    }}
-                  >
-                    Super Admin
-                  </div>
-                </div>
-                <ChevronDown size={13} color="#64a0c8" />
+                )}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* logout */}
+
+        <div className="p-3 border-t border-[#f3e5ff]">
+          <button
+            onClick={handleLogout}
+            className={`
+              w-full
+              rounded-2xl
+              border
+              border-rose-200
+              bg-rose-50
+              text-rose-600
+              font-bold
+              text-sm
+              flex
+              items-center
+              gap-3
+              transition-all
+              duration-200
+              hover:bg-rose-600
+              hover:text-white
+              ${collapsed ? "justify-center py-3" : "px-4 py-3"}
+            `}
+          >
+            <LogOut size={18} />
+
+            {!collapsed && <span>Logout</span>}
+          </button>
+        </div>
+      </aside>
+
+      {/* MAIN AREA */}
+
+      <div className="flex flex-1 flex-col overflow-hidden relative z-10">
+        {/* HEADER */}
+
+        <header className="h-[70px] shrink-0 bg-white/80 backdrop-blur-xl border-b border-[#f3e5ff] shadow-sm px-6 flex items-center justify-between">
+          {/* left */}
+
+          <div className="flex items-center gap-4">
+            {isMobile && (
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="h-10 w-10 rounded-xl border border-purple-200 bg-[#f3e5ff] text-[#600080] flex items-center justify-center"
+              >
+                <Menu size={18} />
+              </button>
+            )}
+
+            <div>
+              <h2 className="text-[28px] font-black capitalize text-purple-950 leading-none">
+                {pageTitle}
+              </h2>
+
+              <div className="flex items-center gap-1 mt-1">
+                <span className="text-[11px] font-semibold text-[#8e24aa]">
+                  QuickFix
+                </span>
+
+                <ChevronRight size={10} className="text-purple-400" />
+
+                <span className="rounded-full border border-purple-200 bg-[#f3e5ff] px-3 py-[2px] text-[10px] font-extrabold uppercase tracking-wide text-[#600080]">
+                  {pageTitle}
+                </span>
               </div>
             </div>
-          </header>
+          </div>
 
-          {/* Page content */}
-          <main
-            style={{
-              flex: 1,
-              overflowY: "auto",
-              padding: "24px",
-              background: "transparent",
-            }}
-          >
-            <Outlet />
-          </main>
-        </div>
+          {/* right */}
+
+          <div className="flex items-center gap-3">
+            {/* notifications */}
+
+            <div className="relative" ref={notifRef}>
+              <button
+                onClick={() => setNotifOpen(!notifOpen)}
+                className="relative h-11 w-11 rounded-2xl border border-purple-200 bg-white hover:bg-[#faf5ff] text-[#600080] flex items-center justify-center transition"
+              >
+                <Bell size={18} />
+
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 min-w-[18px] h-[18px] rounded-full bg-[#7a009f] text-white text-[10px] font-extrabold flex items-center justify-center border-2 border-white">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {notifOpen && (
+                <div className="absolute top-[calc(100%+14px)] -right-48 w-[340px] rounded-3xl border border-[#f3e5ff] bg-white shadow-2xl overflow-hidden">
+                  <div className="p-4 border-b border-[#f3e5ff]">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-black text-purple-950">
+                        Notifications
+                      </h3>
+
+                      {unreadCount > 0 && (
+                        <span className="bg-[#7a009f] text-white text-[10px] font-extrabold px-2 py-1 rounded-full">
+                          {unreadCount} New
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={markAllRead}
+                        className="flex items-center gap-1 rounded-lg bg-[#f3e5ff] hover:bg-[#7a009f] hover:text-white text-[#600080] px-3 py-2 text-[11px] font-bold transition"
+                      >
+                        <CheckCheck size={12} />
+                        Mark all read
+                      </button>
+
+                      <button
+                        onClick={deleteAll}
+                        className="flex items-center gap-1 rounded-lg bg-rose-100 hover:bg-rose-600 hover:text-white text-rose-700 px-3 py-2 text-[11px] font-bold transition"
+                      >
+                        <Trash2 size={12} />
+                        Clear all
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* list */}
+
+                  <div className="max-h-[400px] overflow-y-auto p-3 space-y-2">
+                    {notifs.length === 0 ? (
+                      <div className="py-10 text-center">
+                        <Bell
+                          size={28}
+                          className="mx-auto text-[#d9b3ff] mb-3"
+                        />
+
+                        <p className="font-bold text-purple-400">
+                          All caught up!
+                        </p>
+                      </div>
+                    ) : (
+                      notifs.map((n) => {
+                        const meta = NOTIF_META[n.type];
+
+                        return (
+                          <div
+                            key={n.id}
+                            onClick={() => markRead(n.id)}
+                            className={`
+                              group
+                              rounded-2xl
+                              p-3
+                              flex
+                              items-start
+                              gap-3
+                              transition
+                              cursor-pointer
+                              ${
+                                n.read
+                                  ? "bg-white hover:bg-[#faf5ff]"
+                                  : "bg-[#faf5ff] hover:bg-[#f3e5ff]"
+                              }
+                            `}
+                          >
+                            <div
+                              className={`
+                                h-10
+                                w-10
+                                rounded-xl
+                                flex
+                                items-center
+                                justify-center
+                                text-[#600080]
+                                ${meta.bg}
+                              `}
+                            >
+                              {meta.icon}
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                              <h4
+                                className={`
+                                  text-sm
+                                  truncate
+                                  ${n.read ? "font-semibold" : "font-extrabold"}
+                                  text-purple-950
+                                `}
+                              >
+                                {n.title}
+                              </h4>
+
+                              <p className="text-xs text-[#8e24aa] truncate mt-0.5 font-semibold">
+                                {n.sub}
+                              </p>
+
+                              <p className="text-[11px] text-[#d9b3ff] font-bold mt-1">
+                                {n.time}
+                              </p>
+                            </div>
+
+                            {!n.read && (
+                              <div className="h-2 w-2 rounded-full bg-[#7a009f] mt-2" />
+                            )}
+
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
+                              {!n.read && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    markRead(n.id);
+                                  }}
+                                  className="h-7 w-7 rounded-lg bg-[#f3e5ff] hover:bg-[#7a009f] hover:text-white text-[#600080] flex items-center justify-center"
+                                >
+                                  <Check size={12} />
+                                </button>
+                              )}
+
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteOne(n.id);
+                                }}
+                                className="h-7 w-7 rounded-lg bg-rose-100 hover:bg-rose-600 hover:text-white text-rose-700 flex items-center justify-center"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  {/* footer */}
+
+                  {notifs.length > 0 && (
+                    <div className="p-3 border-t border-[#f3e5ff]">
+                      <button className="w-full rounded-xl border border-purple-200 bg-[#faf5ff] hover:bg-[#7a009f] hover:text-white text-[#600080] py-2 text-sm font-bold transition">
+                        View all notifications
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* profile */}
+
+            <div className="flex items-center gap-3 rounded-2xl border border-purple-200 bg-[#faf5ff] px-3 py-2 cursor-pointer">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-r from-[#600080] to-purple-400 text-white flex items-center justify-center font-black shadow-lg shadow-[#d9b3ff]/50">
+                A
+              </div>
+
+              <div className="hidden sm:block">
+                <h4 className="text-sm font-black text-purple-950 leading-none">
+                  Admin
+                </h4>
+
+                <p className="text-[11px] font-bold text-[#8e24aa] mt-1">
+                  Super Admin
+                </p>
+              </div>
+
+              <ChevronDown size={14} className="text-purple-400" />
+            </div>
+          </div>
+        </header>
+
+        {/* CONTENT */}
+
+        <main className="flex-1 overflow-y-auto p-6">
+          <Outlet />
+        </main>
       </div>
-
-      <style>{`
-        @media (min-width: 640px) { .md-show { display: block !important; } }
-      `}</style>
-    </>
+    </div>
   );
 };
 
