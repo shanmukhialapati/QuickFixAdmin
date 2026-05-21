@@ -9,7 +9,7 @@ const Login = ({ setIsAuthenticated }) => {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (email === "admin@gmail.com" && password === "admin123") {
+    if (email === "user@gmail.com" && password === "user123") {
       setIsAuthenticated(true);
       navigate("/dashboard");
     } else {
