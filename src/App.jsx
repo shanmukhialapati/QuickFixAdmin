@@ -8,15 +8,15 @@ import AdminLayout from "./layouts/AdminLayout";
 // Auth (ఇక్కడ 'Pages' గా మార్చాను)
 import Login from "./Pages/Login";
 
-// Admin Pages (ఇక్కడ కూడా అన్నింటికీ 'Pages' కరెక్ట్ చేశాను)
-import Dashboard from "./Pages/Dashboard";
-import ServiceProviders from "./Pages/ServiceProviders";
-import Customers from "./Pages/Customers";
-import Bookings from "./Pages/Bookings";
-import Categories from "./Pages/Categories";
-import Payments from "./Pages/Payments";
-import Reviews from "./Pages/Reviews";
-import Settings from "./Pages/Settings";
+// Admin Pages
+import Dashboard from "./pages/Dashboard";
+import ServiceProviders from "./pages/ServiceProviders";
+import Customers from "./pages/Customers";
+import Bookings from "./pages/Bookings";
+import Categories from "./pages/Categories";
+import Payments from "./pages/Payments";
+import Reviews from "./pages/Reviews";
+import Settings from "./pages/Settings";
 
 function App() {
   // UI చెక్ చేసుకోవడానికి ప్రస్తుతానికి true లో ఉంచాను
