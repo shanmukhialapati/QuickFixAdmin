@@ -1,47 +1,58 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react"; // Make sure to install lucide-react or change to your custom icons
 
 const Login = ({ setIsAuthenticated }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // State for toggle
+  
+  // Validation States
+  const [errors, setErrors] = useState({ email: "", password: "" });
   const navigate = useNavigate();
 
-  // Validation States
-  const [emailError, setEmailError] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-
-  // Email Validation Logic
-  const handleEmailChange = (value) => {
-    setEmail(value);
+  // Email Validation RegExp
+  const validateEmail = (input) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!value) {
-      setEmailError("Email address is required");
-    } else if (!emailRegex.test(value)) {
-      setEmailError("Please enter a valid email address");
-    } else {
-      setEmailError("");
-    }
+    if (!input) return "Email is required*";
+    if (!emailRegex.test(input)) return "Please enter a valid email address*";
+    return "";
   };
 
-  // Password Validation Logic
-  const handlePasswordChange = (value) => {
-    setPassword(value);
-    if (!value) {
-      setPasswordError("Password is required");
-    } else if (value.length < 6) {
-      setPasswordError("Password must be at least 6 characters");
-    } else {
-      setPasswordError("");
-    }
+  // Password Validation
+  const validatePassword = (input) => {
+    if (!input) return "Password is required*";
+    if (input.length < 6) return "Password must be at least 6 characters long*";
+    return "";
+  };
+
+  // Live Input Handler
+  const handleEmailChange = (e) => {
+    const val = e.target.value;
+    setEmail(val);
+    setErrors((prev) => ({ ...prev, email: validateEmail(val) }));
+  };
+
+  const handlePasswordChange = (e) => {
+    const val = e.target.value;
+    setPassword(val);
+    setErrors((prev) => ({ ...prev, password: validatePassword(val) }));
   };
 
   const handleLogin = (e) => {
     e.preventDefault();
-    
-    // Final check before submission
-    if (emailError || passwordError || !email || !password) return;
 
+    // Trigger Final Validation
+    const emailErr = validateEmail(email);
+    const passwordErr = validatePassword(password);
+
+    if (emailErr || passwordErr) {
+      setErrors({ email: emailErr, password: passwordErr });
+      return;
+    }
+
+    // Checking credentials
     if (email === "admin@gmail.com" && password === "admin123") {
       if (setIsAuthenticated) setIsAuthenticated(true);
       navigate("/dashboard");
@@ -49,9 +60,6 @@ const Login = ({ setIsAuthenticated }) => {
       alert("Invalid Credentials! Try admin@gmail.com / admin123");
     }
   };
-
-  // Check if form is valid to enable/disable button
-  const isFormInvalid = emailError || passwordError || !email || !password;
 
   return (
     <div className="relative min-h-screen w-full bg-[#FAF8FF] font-sans overflow-x-hidden flex items-center justify-center p-4">
@@ -75,10 +83,13 @@ const Login = ({ setIsAuthenticated }) => {
           </div>
         </div>
 
-        {/* Content Overlay */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center pb-16 text-center px-4">
-          <h2 className="text-white text-lg md:text-xl font-medium flex items-center gap-2 opacity-90">
-            Hello 👋 Welcome!
+        {/* Content Overlay - Beautiful Styled Outer Title */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center pb-24 text-center px-4">
+          <h1 className="text-white text-5xl font-extrabold tracking-tight drop-shadow-md bg-clip-text mb-2">
+            Quick<span className="text-purple-300">Fix</span>
+          </h1>
+          <h2 className="text-purple-100 text-sm md:text-base font-medium tracking-wide flex items-center gap-2 opacity-90">
+            Hello 👋 Welcome! Please login to admin dashboard
           </h2>
         </div>
 
@@ -94,63 +105,62 @@ const Login = ({ setIsAuthenticated }) => {
       </div>
 
       {/* ══════════ MAIN CONTENT CARD CONTAINER ══════════ */}
-      <div className="relative z-10 w-full max-w-4xl flex flex-col md:flex-row items-stretch justify-center gap-6 mt-[14vh] px-4">
+      <div className="relative z-10 w-full max-w-6xl flex flex-col md:flex-row items-center justify-between mt-[16vh] px-6 lg:px-12 gap-12">
         
-        {/* LOGIN FORM CARD */}
-        <div className="bg-white rounded-3xl shadow-[0_15px_40px_rgba(110,37,148,0.06)] p-8 md:p-10 w-full max-w-[420px] border border-purple-50/50 flex flex-col justify-center">
-          <div className="text-center mb-6">
-            {/* New Main Header Style */}
-            <h1 className="text-4xl font-black tracking-tight text-[#6E2594] mb-1">
-              Quick Fix
-            </h1>
-            <h3 className="text-2xl font-bold text-gray-800 tracking-tight mt-3">Login</h3>
-            <p className="text-xs text-gray-400 mt-1 font-medium">Please login to admin dashboard</p>
+        {/* LEFT/CENTERED LOGIN FORM CARD */}
+        <div className="bg-white rounded-3xl shadow-[0_15px_40px_rgba(110,37,148,0.06)] p-8 md:p-10 w-full max-w-[420px] border border-purple-50/50 mx-auto md:mx-0 shrink-0">
+          <div className="mb-6">
+            <h3 className="text-2xl font-bold text-gray-800 tracking-tight">Sign In</h3>
+            <p className="text-xs text-gray-400 mt-1">Enter your credentials to manage panel</p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4" noValidate>
             {/* Username Field */}
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <label className="text-xs font-bold text-gray-500 tracking-wide">
                 Email/Username*
               </label>
               <input
                 type="email"
                 required
-                className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl text-sm focus:bg-white focus:ring-2 outline-none transition-all text-gray-700 placeholder-gray-300 ${
-                  emailError 
-                    ? "border-red-400 focus:ring-red-100 focus:border-red-500" 
-                    : "border-gray-200 focus:ring-[#6E2594]/10 focus:border-[#6E2594]"
+                className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl text-sm focus:bg-white outline-none transition-all text-gray-700 placeholder-gray-300 ${
+                  errors.email ? "border-red-400 focus:ring-2 focus:ring-red-100 focus:border-red-500" : "border-gray-200 focus:ring-2 focus:ring-[#6E2594]/10 focus:border-[#6E2594]"
                 }`}
                 placeholder="admin@gmail.com"
                 value={email}
-                onChange={(e) => handleEmailChange(e.target.value)}
+                onChange={handleEmailChange}
               />
-              {emailError && (
-                <p className="text-[11px] font-semibold text-red-500 pl-1">{emailError}</p>
+              {errors.email && (
+                <p className="text-[11px] text-red-500 font-medium pl-1 animate-pulse">{errors.email}</p>
               )}
             </div>
 
-            {/* Password Field */}
-            <div className="space-y-1">
+            {/* Password Field with Eye Icon Logic */}
+            <div className="space-y-1.5">
               <label className="text-xs font-bold text-gray-500 tracking-wide">
                 Password*
               </label>
               <div className="relative">
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
-                  className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl text-sm focus:bg-white focus:ring-2 outline-none transition-all text-gray-700 placeholder-gray-300 ${
-                    passwordError 
-                      ? "border-red-400 focus:ring-red-100 focus:border-red-500" 
-                      : "border-gray-200 focus:ring-[#6E2594]/10 focus:border-[#6E2594]"
+                  className={`w-full pl-4 pr-12 py-3 bg-gray-50/50 border rounded-xl text-sm focus:bg-white outline-none transition-all text-gray-700 placeholder-gray-300 ${
+                    errors.password ? "border-red-400 focus:ring-2 focus:ring-red-100 focus:border-red-500" : "border-gray-200 focus:ring-2 focus:ring-[#6E2594]/10 focus:border-[#6E2594]"
                   }`}
                   placeholder="••••••••"
                   value={password}
-                  onChange={(e) => handlePasswordChange(e.target.value)}
+                  onChange={handlePasswordChange}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#6E2594] transition-colors"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
-              {passwordError && (
-                <p className="text-[11px] font-semibold text-red-500 pl-1">{passwordError}</p>
+              {errors.password && (
+                <p className="text-[11px] text-red-500 font-medium pl-1 animate-pulse">{errors.password}</p>
               )}
             </div>
 
@@ -173,30 +183,90 @@ const Login = ({ setIsAuthenticated }) => {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={isFormInvalid}
-              className={`w-full py-3.5 rounded-xl font-bold text-sm tracking-wide transition-all shadow-lg mt-4 ${
-                isFormInvalid
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed shadow-none"
-                  : "bg-[#6E2594] hover:bg-[#561B75] text-white shadow-[#6E2594]/20 hover:-translate-y-0.5"
-              }`}
+              className="w-full bg-[#6E2594] hover:bg-[#561B75] text-white py-3.5 rounded-xl font-bold text-sm tracking-wide transition-colors shadow-lg shadow-[#6E2594]/20 mt-3"
             >
               Login
             </button>
           </form>
         </div>
 
-        {/* 3D CHARACTER ILLUSTRATION (కార్డ్‌తో పర్ఫెక్ట్ అలైన్‌మెంట్ సెట్ చేశాను) */}
-        <div className="hidden md:flex items-center max-h-[380px] self-center ml-2">
-          <img 
-            src="https://illustrations.popsy.co/purple/creative-work.svg" 
-            alt="3d character sketch" 
-            className="h-full max-h-[340px] object-contain drop-shadow-2xl animate-float"
-          />
+        {/* ══════════ RIGHT SIDE: IMAGE-1 STYLE SERVICE DIAGRAM WITH PURPLE THEMING ══════════ */}
+        <div className="hidden md:block relative w-[500px] h-[500px] absolute left-[16%] right-0 mx-auto scale-90 lg:scale-100 animate-float">
+          
+          {/* Centered Main Image (Admin Dashboard Guy) */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-44 h-44 rounded-full bg-white p-2 shadow-xl border-4 border-[#6E2594] z-10 flex items-center justify-center overflow-hidden">
+            <img 
+              src="https://images.unsplash.com/photo-1762341122023-3aac65b1d787?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8ODd8fGFkbWlufGVufDB8fDB8fHww" 
+              alt="Admin Central" 
+              className="w-[90%] h-[90%] object-contain"
+            />
+          </div>
+
+          {/* Surrounding Circles (Service Categories based on Image 2 & 3) */}
+          
+          {/* Top - AC Service */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full bg-white p-1.5 shadow-lg border-2 border-purple-100 flex items-center justify-center overflow-hidden hover:scale-110 transition-transform">
+            <img 
+              src="https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=150&q=80" 
+              alt="AC Service" 
+              className="w-full h-full object-cover rounded-full"
+            />
+          </div>
+
+          {/* Top Right - Cleaning / Tools */}
+          <div className="absolute top-16 right-4 w-32 h-32 rounded-full bg-white p-1.5 shadow-lg border-2 border-purple-100 flex items-center justify-center overflow-hidden hover:scale-110 transition-transform">
+            <img 
+              src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=150&q=80" 
+              alt="Cleaning" 
+              className="w-full h-full object-cover rounded-full"
+            />
+          </div>
+
+          {/* Bottom Right - Appliance Repair (Washing Machine / Chimney) */}
+          <div className="absolute bottom-16 right-4 w-32 h-32 rounded-full bg-white p-1.5 shadow-lg border-2 border-purple-100 flex items-center justify-center overflow-hidden hover:scale-110 transition-transform">
+            <img 
+              src="https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?auto=format&fit=crop&w=150&q=80" 
+              alt="Appliance Repair" 
+              className="w-full h-full object-cover rounded-full"
+            />
+          </div>
+
+          {/* Bottom - Salon / Massage Service */}
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full bg-white p-1.5 shadow-lg border-2 border-purple-100 flex items-center justify-center overflow-hidden hover:scale-110 transition-transform">
+            <img 
+              src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=150&q=80" 
+              alt="Spa Salon" 
+              className="w-full h-full object-cover rounded-full"
+            />
+          </div>
+
+          {/* Bottom Left - Electrician / Repair */}
+          <div className="absolute bottom-16 left-4 w-32 h-32 rounded-full bg-white p-1.5 shadow-lg border-2 border-purple-100 flex items-center justify-center overflow-hidden hover:scale-110 transition-transform">
+            <img 
+              src="https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8RWxlY3RyaWNpYW58ZW58MHx8MHx8fDA%3D" 
+              alt="Electrician" 
+              className="w-full h-full object-cover rounded-full"
+            />
+          </div>
+
+          {/* Top Left - Intense Bathroom/Home Cleaning */}
+          <div className="absolute top-16 left-4 w-32 h-32 rounded-full bg-white p-1.5 shadow-lg border-2 border-purple-100 flex items-center justify-center overflow-hidden hover:scale-110 transition-transform">
+            <img 
+              src="https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?auto=format&fit=crop&w=150&q=80" 
+              alt="Home Deep Cleaning" 
+              className="w-full h-full object-cover rounded-full"
+            />
+          </div>
+
+          {/* Connecting SVG Dotted Lines Background Effect */}
+          {/*<svg className="absolute inset-0 w-full h-full pointer-events-none opacity-40 animate-spin-slow" viewBox="0 0 500 500">
+            <circle cx="250" cy="250" r="180" fill="none" stroke="#6E2594" strokeWidth="2" strokeDasharray="6 8" />
+          </svg>*/}
         </div>
 
       </div>
 
-      {/* CSS Styles for Custom Arc Animations */}
+      {/* Custom Keyframe Animations */}
       <style>{`
         @keyframes scrollLeft {
           0% { transform: translateX(0%); }
@@ -210,7 +280,7 @@ const Login = ({ setIsAuthenticated }) => {
           animation: scrollLeft 30s linear infinite;
         }
         .animate-float {
-          animation: float 4s ease-in-out infinite;
+          animation: float 5s ease-in-out infinite;
         }
       `}</style>
 

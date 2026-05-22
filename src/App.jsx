@@ -5,10 +5,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 // Layout
 import AdminLayout from "./layouts/AdminLayout";
 
-// Auth (ఇక్కడ 'Pages' గా మార్చాను)
-import Login from "./Pages/Login";
-
-// Admin Pages
+// Pages
+import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ServiceProviders from "./pages/ServiceProviders";
 import Customers from "./pages/Customers";
@@ -19,35 +17,36 @@ import Reviews from "./pages/Reviews";
 import Settings from "./pages/Settings";
 
 function App() {
-  // UI చెక్ చేసుకోవడానికి ప్రస్తుతానికి true లో ఉంచాను
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  // 1. ఇక్కడ 'false' కి మార్చాను బ్రో. దీనివల్ల ఫస్ట్ రన్ అవ్వగానే లాగిన్ పేజీ మాత్రమే ఓపెన్ అవుతుంది.
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   return (
     <BrowserRouter>
       <Routes>
-        {/* Login */}
+        {/* Login Route */}
         <Route
           path="/login"
           element={
             !isAuthenticated ? (
               <Login setIsAuthenticated={setIsAuthenticated} />
             ) : (
-              <Navigate to="/dashboard" />
+              <Navigate to="/dashboard" replace />
             )
           }
         />
 
-        {/* Protected Routes */}
+        {/* Protected Admin Routes */}
         <Route
           path="/"
           element={
             isAuthenticated ? (
               <AdminLayout setIsAuthenticated={setIsAuthenticated} />
             ) : (
-              <Navigate to="/login" />
+              <Navigate to="/login" replace />
             )
           }
         >
+          {/* Default Route inside layout */}
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="service-providers" element={<ServiceProviders />} />
@@ -59,8 +58,8 @@ function App() {
           <Route path="settings" element={<Settings />} />
         </Route>
 
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/login" />} />
+        {/* Fallback Route */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );
