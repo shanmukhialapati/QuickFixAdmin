@@ -1,10 +1,10 @@
 // src/App.jsx
 import React, { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-
+ 
 // Layout
 import AdminLayout from "./layouts/AdminLayout";
-
+ 
 // Pages
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -15,11 +15,11 @@ import Categories from "./pages/Categories";
 import Payments from "./pages/Payments";
 import Reviews from "./pages/Reviews";
 import Settings from "./pages/Settings";
-
+ 
 function App() {
   // 1. ఇక్కడ 'false' కి మార్చాను బ్రో. దీనివల్ల ఫస్ట్ రన్ అవ్వగానే లాగిన్ పేజీ మాత్రమే ఓపెన్ అవుతుంది.
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-
+ 
   return (
     <BrowserRouter>
       <Routes>
@@ -34,7 +34,7 @@ function App() {
             )
           }
         />
-
+ 
         {/* Protected Admin Routes */}
         <Route
           path="/"
@@ -57,12 +57,12 @@ function App() {
           <Route path="reviews" element={<Reviews />} />
           <Route path="settings" element={<Settings />} />
         </Route>
-
+ 
         {/* Fallback Route */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );
 }
-
+ 
 export default App;
